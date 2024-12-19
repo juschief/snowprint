@@ -13,7 +13,7 @@ export function Navigation() {
     { path: '/', label: 'Dashboard' },
     { path: '/bridge', label: 'Token Bridge' },
     { path: '/launchpad', label: 'Launchpad' },
-    { path: '/dapps', label: 'Dapps' }
+    { path: '/explore', label: 'Explore' }
   ];
 
   return (

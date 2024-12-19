@@ -2,20 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { SUPPORTED_TOKENS, getTokenAddress, getTokenDecimals } from '../config/tokens';
 
-interface Token {
-  symbol: string;
-  name: string;
-  logo: string;
-  address: string;
-  decimals: number;
+interface ValidationErrors {
+  [key: string]: string;
 }
 
 export function BridgeForm() {
   const [sourceChain, setSourceChain] = useState('ethereum');
   const [destinationChain, setDestinationChain] = useState('avalanche');
   const [amount, setAmount] = useState('');
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const [selectedToken, setSelectedToken] = useState(SUPPORTED_TOKENS[0]);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [gasEstimate, setGasEstimate] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,37 +21,6 @@ export function BridgeForm() {
   const chains = [
     { id: 'ethereum', name: 'Ethereum', chainId: 1 },
     { id: 'avalanche', name: 'Avalanche', chainId: 43114 },
-  ];
-
-  const tokens: Token[] = [
-    { 
-      symbol: 'WETH', 
-      name: 'Wrapped Ether', 
-      logo: '/tokens/eth.svg',
-      address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      decimals: 18
-    },
-    { 
-      symbol: 'USDC', 
-      name: 'USD Coin', 
-      logo: '/tokens/usdc.svg',
-      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      decimals: 6
-    },
-    { 
-      symbol: 'USDT', 
-      name: 'Tether', 
-      logo: '/tokens/usdt.svg',
-      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      decimals: 6
-    },
-    { 
-      symbol: 'DAI', 
-      name: 'Dai Stablecoin', 
-      logo: '/tokens/dai.svg',
-      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-      decimals: 18
-    }
   ];
 
   useEffect(() => {
@@ -82,26 +48,33 @@ export function BridgeForm() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
+      
+      const network = process.env.NEXT_PUBLIC_NETWORK as 'mainnet' | 'testnet';
+      const tokenAddress = getTokenAddress(selectedToken.symbol, network);
+      const decimals = getTokenDecimals(selectedToken.symbol);
 
       const tokenContract = new ethers.Contract(
-        selectedToken.address,
+        tokenAddress,
         ['function approve(address spender, uint256 amount) returns (bool)'],
         signer
       );
 
-      const bridgeAddress = '0x50Ff3B278fCC70ec7A9465063d68029AB460eA04';
-      const amountToApprove = ethers.utils.parseUnits(amount, selectedToken.decimals);
+      const bridgeAddress = network === 'mainnet' 
+        ? process.env.NEXT_PUBLIC_BRIDGE_ADDRESS_MAINNET 
+        : process.env.NEXT_PUBLIC_BRIDGE_ADDRESS_TESTNET;
+
+      const amountToApprove = ethers.utils.parseUnits(amount, decimals);
       const approveTx = await tokenContract.approve(bridgeAddress, amountToApprove);
       await approveTx.wait();
 
       const bridgeContract = new ethers.Contract(
-        bridgeAddress,
+        bridgeAddress as string,
         ['function bridge(address token, uint256 amount) payable'],
         signer
       );
 
       const bridgeTx = await bridgeContract.bridge(
-        selectedToken.address,
+        tokenAddress,
         amountToApprove,
         { value: ethers.utils.parseEther('0.01') }
       );
@@ -109,7 +82,7 @@ export function BridgeForm() {
       await bridgeTx.wait();
       
       alert('Bridge transaction successful!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Bridge error:', error);
       alert('Failed to bridge tokens: ' + error.message);
     } finally {
@@ -141,39 +114,6 @@ export function BridgeForm() {
 
     checkBalance();
   }, [selectedToken]);
-
-  const getTokenAddress = (token: string, chain: string) => {
-    const addresses = {
-      ethereum: {
-        WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-        USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-      },
-      avalanche: {
-        WETH: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
-        USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
-        USDT: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
-        DAI: '0xd586E7F844cEa2F87f50152665BCbc2C279D8d70'
-      }
-    };
-    return addresses[chain as keyof typeof addresses][token as keyof typeof addresses.ethereum];
-  };
-
-  const handleTokenSelect = (token: Token) => {
-    const address = getTokenAddress(token.symbol, sourceChain);
-    setSelectedToken({
-      ...token,
-      address
-    });
-  };
-
-  useEffect(() => {
-    if (selectedToken) {
-      const newAddress = getTokenAddress(selectedToken.symbol, sourceChain);
-      setSelectedToken(prev => prev ? { ...prev, address: newAddress } : null);
-    }
-  }, [sourceChain]);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = '/tokens/placeholder.svg'; // Fallback image
@@ -220,27 +160,36 @@ export function BridgeForm() {
         <label className="block text-sm font-medium text-zinc-400 mb-2">
           Select Token
         </label>
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-          {tokens.map((token) => (
-            <button
-              key={token.symbol}
-              type="button"
-              onClick={() => handleTokenSelect(token)}
-              className={`flex items-center space-x-2 p-3 rounded-lg border ${
-                selectedToken?.symbol === token.symbol
-                  ? 'border-blue-500 bg-zinc-800'
-                  : 'border-zinc-700 hover:bg-zinc-800'
-              }`}
+        <div className="relative">
+          <select
+            value={selectedToken.symbol}
+            onChange={(e) => {
+              const token = SUPPORTED_TOKENS.find(t => t.symbol === e.target.value);
+              if (token) setSelectedToken(token);
+            }}
+            className="w-full bg-zinc-800 text-white rounded-lg p-3 pr-10 border border-zinc-700 focus:ring-2 focus:ring-blue-500 appearance-none"
+          >
+            {SUPPORTED_TOKENS.map((token) => (
+              <option key={token.symbol} value={token.symbol}>
+                {token.name} ({token.symbol})
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+            <svg 
+              className="w-4 h-4 text-zinc-400" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
             >
-              <img
-                src={token.logo}
-                alt={token.name}
-                className="w-6 h-6 rounded-full"
-                onError={handleImageError}
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M19 9l-7 7-7-7" 
               />
-              <span className="text-white">{token.symbol}</span>
-            </button>
-          ))}
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -256,11 +205,9 @@ export function BridgeForm() {
             placeholder="0.0"
             className="w-full bg-zinc-800 text-white rounded-lg p-3 border border-zinc-700 focus:ring-2 focus:ring-blue-500"
           />
-          {selectedToken && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
-              {selectedToken.symbol}
-            </span>
-          )}
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+            {selectedToken.symbol}
+          </span>
         </div>
       </div>
 
