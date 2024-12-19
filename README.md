@@ -1,6 +1,6 @@
 # Snowprint | Avalanche DeFi Platform
 
-A comprehensive platform for Avalanche DeFi protocols.
+A comprehensive platform for Avalanche.  Analytics, Bridge, Blockchain Launchpad, and Dapps
 
 ## Features
 
