@@ -1,47 +1,75 @@
+# Snowprint | Avalanche DeFi Platform
 
-![tw-banner](https://github.com/thirdweb-example/next-starter/assets/57885104/20c8ce3b-4e55-4f10-ae03-2fe4743a5ee8)
+A comprehensive platform for Avalanche DeFi protocols.
 
-# thirdweb-next-starter
+## Features
 
-Starter template to build an onchain react native app with [thirdweb](https://thirdweb.com/) and [next](https://nextjs.org/).
+- Real-time AVAX price tracking with TradingView integration
+- Network statistics and blockchain data visualization
+- Token bridge interface
+- DApps explorer
+- Launchpad platform
+- Wallet connectivity with Thirdweb
 
-## Installation
+## Tech Stack
 
-Install the template using [thirdweb create](https://portal.thirdweb.com/cli/create)
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Chart.js
+- Thirdweb
+- Ethers.js
+
+## Getting Started
+
+1. Clone the repository:
 
 ```bash
-  npx thirdweb create app --next
+git clone https://github.com/yourusername/snowprint.git
 ```
 
-## Environment Variables
+2. Navigate to the project directory:
 
-To run this project, you will need to add the following environment variables to your .env file:
+```bash
+cd snowprint
+```
 
-`CLIENT_ID`
-
-To learn how to create a client ID, refer to the [client documentation](https://portal.thirdweb.com/typescript/v5/client). 
-
-## Run locally
-
-Install dependencies
+3. Install dependencies:
 
 ```bash
 yarn
 ```
 
-Start development server
+4. Set up environment variables:
+
+```env:.env.example
+# Network Configuration
+NEXT_PUBLIC_NETWORK=testnet  # or mainnet
+NEXT_PUBLIC_AVALANCHE_RPC_TESTNET=https://api.avax-test.network/ext/bc/C/rpc
+NEXT_PUBLIC_AVALANCHE_RPC_MAINNET=https://api.avax.network/ext/bc/C/rpc
+
+# Bridge Configuration
+NEXT_PUBLIC_BRIDGE_ADDRESS_TESTNET=0x...  # Testnet bridge address
+NEXT_PUBLIC_BRIDGE_ADDRESS_MAINNET=0x...  # Mainnet bridge address
+
+# Explorer Configuration
+NEXT_PUBLIC_EXPLORER_TESTNET=https://testnet.snowtrace.io
+NEXT_PUBLIC_EXPLORER_MAINNET=https://snowtrace.io
+```
+
+5. Start development server:
 
 ```bash
 yarn dev
 ```
 
-Create a production build
+6. Create a production build:
 
 ```bash
 yarn build
 ```
 
-Preview the production build
+7. Preview the production build:
 
 ```bash
 yarn start
