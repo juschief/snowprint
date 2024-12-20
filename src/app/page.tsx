@@ -1,16 +1,32 @@
 "use client";
 
-import { client } from "./client";
 import { NetworkStats } from '@/components/NetworkStats';
-import { BlockchainStats } from '@/components/BlockchainStats';
-import { SnowprintLogo } from '@/components/SnowprintLogo';
+import { NetworkCharts } from '@/components/NetworkCharts';
+import { LatestBlock } from '@/components/LatestBlock';
+import { LatestTransactions } from '@/components/LatestTransactions';
+import { CrossChainActivity } from '@/components/CrossChainActivity';
 
 export default function HomePage() {
   return (
     <div className="flex flex-col items-center justify-start pt-8 min-h-screen gap-8">
       <Header />
-      <NetworkStats />
-      <BlockchainStats />
+      
+      {/* Charts Section */}
+      <div className="w-full max-w-7xl px-4">
+        <NetworkCharts />
+      </div>
+
+      {/* Latest Data Section */}
+      <div className="w-full max-w-7xl px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <LatestBlock />
+        <LatestTransactions />
+      </div>
+
+      {/* Network Stats Section */}
+      <div className="w-full max-w-7xl px-4 space-y-4">
+        <NetworkStats />
+        <CrossChainActivity />
+      </div>
     </div>
   );
 }

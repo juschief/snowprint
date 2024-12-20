@@ -1,146 +1,165 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api';
 
-interface Transaction {
-  hash: string;
-  from: string;
-  to: string;
-  value: string;
-  timestamp: number;
-}
-
-interface Block {
-  number: string;
-  timestamp: number;
-  transactions: number;
-  hash: string;
-}
-
-interface CrossChainTx {
-  sourceChain: string;
-  destinationChain: string;
-  hash: string;
-  timestamp: number;
+interface BlockchainData {
+  blocks: Array<{
+    number: string;
+    timestamp: number;
+    transactions: number;
+    hash: string;
+  }>;
+  transactions: Array<{
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+    timestamp: number;
+  }>;
+  crossChain: Array<{
+    sourceChain: string;
+    destinationChain: string;
+    hash: string;
+    timestamp: number;
+  }>;
 }
 
 export function BlockchainStats() {
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [crossChainTxs, setCrossChainTxs] = useState<CrossChainTx[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Helper function to truncate addresses/hashes
-  const truncate = (str: string) => `${str.slice(0, 6)}...${str.slice(-4)}`;
-  
-  // Helper function to format timestamp
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleString();
-  };
+  const [data, setData] = useState<BlockchainData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchBlockchainData = async () => {
       try {
-        // For demonstration, using simulated data
-        // In production, replace with actual API calls to Avalanche nodes
-        
-        // Simulate blocks
-        const mockBlocks: Block[] = Array.from({ length: 5 }, (_, i) => ({
-          number: String(16000000 - i),
-          timestamp: Math.floor(Date.now() / 1000) - i * 60,
-          transactions: Math.floor(Math.random() * 100),
-          hash: `0x${Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`
-        }));
-        
-        // Simulate transactions
-        const mockTxs: Transaction[] = Array.from({ length: 5 }, () => ({
-          hash: `0x${Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-          from: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-          to: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-          value: (Math.random() * 10).toFixed(4),
-          timestamp: Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 3600)
-        }));
+        setLoading(true);
+        setError(null);
 
-        // Simulate cross-chain transactions
-        const mockCrossChainTxs: CrossChainTx[] = Array.from({ length: 5 }, () => ({
-          sourceChain: Math.random() > 0.5 ? 'Ethereum' : 'BSC',
-          destinationChain: 'Avalanche',
-          hash: `0x${Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-          timestamp: Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 3600)
-        }));
+        const [blocksRes, txRes, crossChainRes] = await Promise.all([
+          apiClient.get('/stats/blocks'),
+          apiClient.get('/stats/transactions'),
+          apiClient.get('/stats/cross-chain')
+        ]);
 
-        setBlocks(mockBlocks);
-        setTransactions(mockTxs);
-        setCrossChainTxs(mockCrossChainTxs);
-      } catch (error) {
-        console.error('Error fetching blockchain data:', error);
+        setData({
+          blocks: blocksRes.data,
+          transactions: txRes.data,
+          crossChain: crossChainRes.data
+        });
+      } catch (err) {
+        console.error('Failed to fetch blockchain data:', err);
+        setError('Failed to fetch blockchain data. Please try again later.');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchData();
-    // Set up polling every 10 seconds
-    const interval = setInterval(fetchData, 10000);
+    fetchBlockchainData();
+    const interval = setInterval(fetchBlockchainData, 30000); // Refresh every 30 seconds
+
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading) {
-    return <div className="text-white text-center">Loading blockchain data...</div>;
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-zinc-800/50 rounded-xl p-6 animate-pulse">
+            <div className="h-6 bg-zinc-700/50 rounded w-1/3 mb-4"></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-zinc-700/50 rounded w-full"></div>
+              <div className="h-4 bg-zinc-700/50 rounded w-5/6"></div>
+              <div className="h-4 bg-zinc-700/50 rounded w-4/6"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
-  const StatCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors">
-      <h2 className="text-xl font-bold text-white mb-4">{title}</h2>
-      {children}
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="bg-zinc-800/50 rounded-xl p-6">
+        <p className="text-red-400">{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3 w-full">
-      <StatCard title="Latest Blocks">
-        <div className="space-y-3">
-          {blocks.map((block) => (
-            <div key={block.hash} className="text-sm">
-              <div className="flex justify-between text-zinc-400">
-                <span>Block {block.number}</span>
-                <span>{formatTime(block.timestamp)}</span>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Latest Blocks */}
+      <div className="bg-zinc-800/50 rounded-xl p-6">
+        <h2 className="text-xl font-bold text-blue-500 mb-4">Latest Blocks</h2>
+        <div className="space-y-4">
+          {data?.blocks.map((block) => (
+            <div key={block.hash} className="bg-zinc-700/50 rounded-lg p-4">
+              <div className="flex justify-between items-start">
+                <span className="text-sm text-gray-300">Block #{block.number}</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(block.timestamp * 1000).toLocaleTimeString()}
+                </span>
               </div>
-              <div className="text-white">
-                Txs: {block.transactions} | Hash: {truncate(block.hash)}
+              <div className="mt-2 text-sm">
+                <span className="text-gray-400">Txs: </span>
+                <span className="text-white">{block.transactions}</span>
               </div>
             </div>
           ))}
         </div>
-      </StatCard>
+      </div>
 
-      <StatCard title="Latest Transactions">
-        <div className="space-y-3">
-          {transactions.map((tx) => (
-            <div key={tx.hash} className="text-sm">
-              <div className="text-zinc-400">Hash: {truncate(tx.hash)}</div>
-              <div className="text-white">
-                From: {truncate(tx.from)} → To: {truncate(tx.to)}
+      {/* Latest Transactions */}
+      <div className="bg-zinc-800/50 rounded-xl p-6">
+        <h2 className="text-xl font-bold text-blue-500 mb-4">Latest Transactions</h2>
+        <div className="space-y-4">
+          {data?.transactions.map((tx) => (
+            <div key={tx.hash} className="bg-zinc-700/50 rounded-lg p-4">
+              <div className="flex justify-between items-start">
+                <div className="truncate flex-1">
+                  <div className="text-sm text-gray-300 truncate">
+                    From: {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
+                  </div>
+                  <div className="text-sm text-gray-300 truncate">
+                    To: {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400 ml-2">
+                  {new Date(tx.timestamp * 1000).toLocaleTimeString()}
+                </span>
               </div>
-              <div className="text-zinc-400">Value: {tx.value} AVAX</div>
+              <div className="mt-2 text-sm">
+                <span className="text-gray-400">Value: </span>
+                <span className="text-white">{parseFloat(tx.value).toFixed(4)} AVAX</span>
+              </div>
             </div>
           ))}
         </div>
-      </StatCard>
+      </div>
 
-      <StatCard title="Cross-Chain Transactions">
-        <div className="space-y-3">
-          {crossChainTxs.map((tx) => (
-            <div key={tx.hash} className="text-sm">
-              <div className="text-zinc-400">
-                {tx.sourceChain} → {tx.destinationChain}
+      {/* Cross-Chain Transactions */}
+      <div className="bg-zinc-800/50 rounded-xl p-6">
+        <h2 className="text-xl font-bold text-blue-500 mb-4">Cross-Chain Activity</h2>
+        <div className="space-y-4">
+          {data?.crossChain.map((tx) => (
+            <div key={tx.hash} className="bg-zinc-700/50 rounded-lg p-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-sm text-gray-300">
+                    From: {tx.sourceChain}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    To: {tx.destinationChain}
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {new Date(tx.timestamp * 1000).toLocaleTimeString()}
+                </span>
               </div>
-              <div className="text-white">Hash: {truncate(tx.hash)}</div>
-              <div className="text-zinc-400">{formatTime(tx.timestamp)}</div>
             </div>
           ))}
         </div>
-      </StatCard>
+      </div>
     </div>
   );
 } 

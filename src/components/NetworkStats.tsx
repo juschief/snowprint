@@ -1,144 +1,52 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { NetworkActivityChart } from './NetworkCharts';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { api } from '@/lib/api';
+import { NetworkStats as NetworkStatsType } from '@/types/api';
+import { LoadingState } from './LoadingState';
+import { ErrorState } from './ErrorState';
 
 export function NetworkStats() {
-  const [labels, setLabels] = useState<string[]>([]);
-  const [tpsData, setTpsData] = useState<number[]>([]);
-  const [activeAddresses, setActiveAddresses] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<NetworkStatsType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
       try {
-        // Generate last 7 days for labels
-        const dates = Array.from({length: 7}, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
-          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
-        setLabels(dates);
-
-        // Simulated data for TPS and active addresses
-        const simulatedTPS = dates.map(() => Math.floor(Math.random() * (5000 - 4000) + 4000));
-        const simulatedAddresses = dates.map(() => Math.floor(Math.random() * (50000 - 30000) + 30000));
-        
-        setTpsData(simulatedTPS);
-        setActiveAddresses(simulatedAddresses);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+        const { data } = await api.getNetworkStats();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to fetch network stats');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchData();
+    fetchStats();
   }, []);
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: { color: 'white' },
-      },
-      title: {
-        display: true,
-        color: 'white',
-      },
-    },
-    scales: {
-      y: {
-        ticks: { color: 'white' },
-        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-      },
-      x: {
-        ticks: { color: 'white' },
-        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-      }
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="w-full max-w-7xl h-[300px] flex justify-center items-center">
-        <div className="text-white">Loading network stats...</div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState message={error} />;
+  if (!stats) return null;
 
   return (
-    <div className="w-full max-w-7xl">
-      <h2 className="text-2xl font-bold mb-4">Network Statistics</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* AVAX Price Chart (TradingView) */}
-        <div className="bg-zinc-800 rounded-lg p-4">
-          <h3 className="text-xl mb-4">AVAX Price</h3>
-          <NetworkActivityChart />
+    <div className="w-full p-2.5 bg-zinc-800 rounded-lg">
+      <h2 className="text-xs font-semibold mb-2">Network Activity (Previous Day)</h2>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="p-2 bg-zinc-700/50 rounded-lg">
+          <p className="text-zinc-400 text-[10px]">Active Addresses</p>
+          <p className="text-sm font-medium">
+            {Number(stats.activeAddresses).toLocaleString()}
+          </p>
         </div>
-
-        {/* Gas Usage Chart (Chart.js) */}
-        <div className="bg-zinc-800 rounded-lg p-4">
-          <h3 className="text-xl mb-4">Transactions Per Second</h3>
-          <div className="h-[300px]">
-            <Line 
-              options={chartOptions} 
-              data={{
-                labels,
-                datasets: [{
-                  label: 'TPS',
-                  data: tpsData,
-                  borderColor: '#E84142',
-                  backgroundColor: 'rgba(232, 65, 66, 0.5)',
-                  tension: 0.4,
-                }]
-              }} 
-            />
-          </div>
-        </div>
-
-        {/* Active Addresses Chart (Chart.js) */}
-        <div className="bg-zinc-800 rounded-lg p-4">
-          <h3 className="text-xl mb-4">Active Addresses</h3>
-          <div className="h-[300px]">
-            <Line 
-              options={chartOptions} 
-              data={{
-                labels,
-                datasets: [{
-                  label: 'Active Addresses',
-                  data: activeAddresses,
-                  borderColor: '#4BC0C0',
-                  backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                  tension: 0.4,
-                }]
-              }} 
-            />
-          </div>
+        <div className="p-2 bg-zinc-700/50 rounded-lg">
+          <p className="text-zinc-400 text-[10px]">Total Transactions</p>
+          <p className="text-sm font-medium">
+            {Number(stats.totalTransactions24h).toLocaleString()}
+          </p>
         </div>
       </div>
     </div>

@@ -22,16 +22,12 @@ export function Navigation() {
         <div className="flex items-center">
           <SnowprintLogo />
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           {navItems.map((item) => (
             <Link
               key={item.path}
               href={item.path}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                pathname === item.path
-                  ? 'bg-zinc-800 text-white'
-                  : 'text-white-400 hover:text-white hover:bg-zinc-900'
-              }`}
+              className="nav-link"
             >
               {item.label}
             </Link>
@@ -42,6 +38,7 @@ export function Navigation() {
               name: "Snowprint",
               url: "https://example.com",
             }}
+            className="connect-button"
           />
         </div>
       </div>

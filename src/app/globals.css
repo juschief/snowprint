@@ -3,127 +3,58 @@
 @tailwind utilities;
 
 :root {
-	line-height: 1.5;
-	font-weight: 400;
-	font-synthesis: none;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	font-family: 'Inter', sans-serif;
-	font-optical-sizing: auto;
-	font-style: normal;
-	font-variation-settings: 'slnt' 0;
+	--foreground-rgb: 255, 255, 255;
+	--background-start-rgb: 0, 0, 0;
+	--background-end-rgb: 0, 0, 0;
 }
 
-@layer base {
-	body {
-		@apply bg-zinc-950 text-neutral-200;
-	}
-  :root {
-		--background: 232 47% 5%;
-		--foreground: 210 20% 98%;
-		--card: 232 47% 8%;
-		--card-foreground: 210 20% 98%;
-		--popover: 232 47% 8%;
-		--popover-foreground: 210 20% 98%;
-		--primary: 217 91% 60%;
-		--primary-foreground: 210 20% 98%;
-		--secondary: 232 47% 12%;
-		--secondary-foreground: 210 20% 98%;
-		--muted: 232 47% 15%;
-		--muted-foreground: 217.9 10.6% 64.9%;
-		--accent: 217 91% 60%;
-		--accent-foreground: 210 20% 98%;
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 210 20% 98%;
-		--border: 232 47% 15%;
-		--input: 232 47% 15%;
-		--ring: 216 12.2% 83.9%;
-		--chart-1: 217 91% 60%;
-		--chart-2: 190 80% 50%;
-		--chart-3: 250 70% 60%;
-		--chart-4: 280 65% 60%;
-		--chart-5: 320 70% 55%;
-		--radius: 0.5rem;
-	}
-  .dark {
-		--background: 224 71.4% 4.1%;
-		--foreground: 210 20% 98%;
-		--card: 224 71.4% 4.1%;
-		--card-foreground: 210 20% 98%;
-		--popover: 224 71.4% 4.1%;
-		--popover-foreground: 210 20% 98%;
-		--primary: 210 20% 98%;
-		--primary-foreground: 220.9 39.3% 11%;
-		--secondary: 215 27.9% 16.9%;
-		--secondary-foreground: 210 20% 98%;
-		--muted: 215 27.9% 16.9%;
-		--muted-foreground: 217.9 10.6% 64.9%;
-		--accent: 215 27.9% 16.9%;
-		--accent-foreground: 210 20% 98%;
-		--destructive: 0 62.8% 30.6%;
-		--destructive-foreground: 210 20% 98%;
-		--border: 215 27.9% 16.9%;
-		--input: 215 27.9% 16.9%;
-		--ring: 216 12.2% 83.9%;
-		--chart-1: 220 70% 50%;
-		--chart-2: 160 60% 45%;
-		--chart-3: 30 80% 55%;
-		--chart-4: 280 65% 60%;
-		--chart-5: 340 75% 55%;
-	}
-}
-
-@layer base {
-  * {
-    @apply border-border;
-	}
-  body {
-    @apply bg-background text-foreground;
-	}
+body {
+	color: rgb(var(--foreground-rgb));
+	background: linear-gradient(
+		to bottom,
+		transparent,
+		rgb(var(--background-end-rgb))
+	)
+	rgb(var(--background-start-rgb));
 }
 
 @layer components {
-  .navbar {
-    @apply fixed top-0 right-0 left-0 h-16 bg-red-600 flex items-center justify-between px-6 z-50;
-  }
+	.navbar {
+		@apply fixed top-0 right-0 left-0 h-16 bg-red-600 flex items-center justify-between px-6 z-50;
+	}
 
-  .navbar-content {
-    @apply flex items-center justify-between w-full max-w-7xl mx-auto;
-  }
+	.navbar-content {
+		@apply flex items-center justify-between w-full max-w-7xl mx-auto;
+	}
 
-  .connect-button {
-    @apply px-4 py-2 bg-white text-red-600 rounded-lg font-medium hover:bg-gray-100 transition-colors;
-  }
+	.nav-link {
+		@apply text-white hover:text-gray-200 px-4 py-2 rounded-lg transition-colors duration-200;
+	}
 
-  /* Adjust main content to account for navbar */
-  .main-content {
-    @apply pt-16; /* This adds padding top equal to navbar height */
-  }
+	.connect-button {
+		@apply px-4 py-2 bg-white text-red-600 rounded-lg font-medium hover:bg-gray-100 transition-colors;
+	}
 
-  .navbar-content {
-    @apply flex justify-between items-center max-w-7xl mx-auto px-4;
-  }
-
-  .main-content {
-    @apply max-w-7xl mx-auto px-4 py-8;
-  }
+	/* Adjust main content to account for navbar */
+	.main-content {
+		@apply pt-16 max-w-7xl mx-auto px-4 py-8;
+	}
 }
 
 @keyframes snowfall {
-  0% {
-    transform: translateY(-20px);
-    opacity: 0.4;
-  }
-  20% {
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(30px);
-    opacity: 0.4;
-  }
+	0% {
+		transform: translateY(-10px);
+		opacity: 0;
+	}
+	20% {
+		opacity: 0.8;
+	}
+	100% {
+		transform: translateY(20px);
+		opacity: 0;
+	}
 }
 
 .animate-fall {
-  animation: snowfall linear forwards;
+	animation: snowfall 3s ease-in-out infinite;
 }

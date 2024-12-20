@@ -12,14 +12,14 @@ export function SnowprintLogo() {
     const createSnowflake = () => {
       const snowflake = document.createElement('div');
       snowflake.innerHTML = '❄';
-      snowflake.className = 'absolute text-white/70 animate-fall text-lg';
+      snowflake.className = 'absolute text-white/40 animate-fall text-sm';
       snowflake.style.left = `${Math.random() * 100}%`;
-      snowflake.style.animationDuration = `${Math.random() * 3 + 2}s`;
+      snowflake.style.animationDuration = `${Math.random() * 2 + 2}s`;
       container.appendChild(snowflake);
 
       setTimeout(() => {
         snowflake.remove();
-      }, 5000);
+      }, 3000);
     };
 
     const interval = setInterval(createSnowflake, 500);
@@ -35,7 +35,7 @@ export function SnowprintLogo() {
   return (
     <div className="relative inline-block">
       <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none" />
-      <span className="inline-block -skew-x-6 text-white relative z-10 text-2xl font-bold">
+      <span className="inline-block text-white relative z-10 text-2xl font-bold tracking-tight hover:text-gray-200 transition-colors duration-200">
         Snowprint
       </span>
     </div>

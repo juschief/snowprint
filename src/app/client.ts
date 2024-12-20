@@ -1,13 +1,6 @@
 import { createThirdwebClient } from "thirdweb";
 
-// Replace this with your client ID string
-// refer to https://portal.thirdweb.com/typescript/v5/client on how to get a client ID
-const clientId = '27bc4e3c2eb6885e645388909d443a06';
-
-if (!clientId) {
-  throw new Error("No client ID provided");
-}
-
+// Create a client
 export const client = createThirdwebClient({
-  clientId: clientId,
+  clientId: '4a25552d9112bf4d088dec97f1fa90e5' || "", // Get this from thirdweb dashboard
 });

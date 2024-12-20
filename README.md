@@ -1,24 +1,21 @@
-# Snowprint | Avalanche DeFi Platform
+# Snowprint - Avalanche Network Explorer
 
-A comprehensive platform for Avalanche.  Analytics, Bridge, Blockchain Launchpad, and Dapps
+A modern, real-time explorer for the Avalanche network that provides detailed insights into network activity, transactions, and cross-chain operations.
 
 ## Features
 
-- Real-time AVAX price tracking with TradingView integration
-- Network statistics and blockchain data visualization
-- Token bridge interface
-- DApps explorer
-- Launchpad platform
-- Wallet connectivity with Thirdweb
+- Real-time network statistics
+- Latest blocks and transactions
+- Cross-chain activity monitoring
+- Community proposals tracking
+- Network health indicators
+- Mobile-responsive design
 
 ## Tech Stack
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Chart.js
-- Thirdweb
-- Ethers.js
+- Frontend: Next.js 13+, TailwindCSS, TypeScript
+- Backend: Node.js, Express, ethers.js
+- Network: Avalanche RPC, Snowtrace API
 
 ## Getting Started
 
