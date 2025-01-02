@@ -10,7 +10,6 @@
   "dependencies": {
     "axios": "^1.7.9",
     "chart.js": "^4.0.0",
-    "ethers": "^5.7.2",
     "next": "latest",
     "react": "latest",
     "react-chartjs-2": "^5.0.0",
@@ -19,10 +18,21 @@
     "thirdweb": "^5.80.0"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@openzeppelin/contracts": "^5.1.0",
     "@types/node": "^18.0.0",
     "@types/react": "^18.0.0",
     "autoprefixer": "^10.0.0",
+    "dotenv": "^16.4.7",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.17",
+    "hardhat-deploy": "^0.14.0",
     "postcss": "^8.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "description": "A modern, real-time explorer for the Avalanche network that provides detailed insights into network activity, transactions, and cross-chain operations.",
+  "main": "next.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

@@ -2,21 +2,144 @@
 
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { SUPPORTED_TOKENS, getTokenAddress, getTokenDecimals } from '../config/tokens';
+import { BRIDGE_ABI, CHAIN_IDS } from '../config/contracts';
+
+interface Token {
+  symbol: string;
+  name: string;
+  decimals: number;
+  address: {
+    mainnet: string;
+    testnet: string;
+  };
+  logoUrl?: string;
+}
+
+const SUPPORTED_TOKENS: Token[] = [
+  {
+    symbol: 'AVAX',
+    name: 'Avalanche',
+    decimals: 18,
+    address: {
+      mainnet: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
+      testnet: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
+    },
+    logoUrl: '/tokens/avax.png'
+  },
+  {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    address: {
+      mainnet: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+      testnet: '0x5425890298aed601595a70AB815c96711a31Bc65'
+    },
+    logoUrl: '/tokens/usdc.png'
+  }
+];
+
+const getTokenAddress = (symbol: string, network: 'mainnet' | 'testnet'): string => {
+  const token = SUPPORTED_TOKENS.find(t => t.symbol === symbol);
+  if (!token) throw new Error(`Token ${symbol} not found`);
+  return token.address[network];
+};
+
+const getTokenDecimals = (symbol: string): number => {
+  const token = SUPPORTED_TOKENS.find(t => t.symbol === symbol);
+  if (!token) throw new Error(`Token ${symbol} not found`);
+  return token.decimals;
+};
 
 interface ValidationErrors {
   [key: string]: string;
+}
+
+async function estimateGas(
+  sourceChain: string,
+  destinationChain: string,
+  amount: string,
+  provider: ethers.providers.Web3Provider
+): Promise<string> {
+  // Basic gas estimation
+  const gasPrice = await provider.getGasPrice();
+  const baseGas = ethers.BigNumber.from('200000'); // Base gas units
+  const totalGas = gasPrice.mul(baseGas);
+  
+  return ethers.utils.formatEther(totalGas);
+}
+
+const TEST_TOKENS = {
+  AVAX: {
+    fuji: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c',
+    goerli: '0x...' // Add Goerli WAVAX address
+  },
+  USDC: {
+    fuji: '0x5425890298aed601595a70AB815c96711a31Bc65',
+    goerli: '0x...' // Add Goerli USDC address
+  }
+};
+
+async function validateBridgeTransaction(
+  provider: ethers.providers.Web3Provider,
+  bridgeContract: ethers.Contract,
+  amount: string,
+  token: Token,
+  network: 'mainnet' | 'testnet',
+  destinationChain: string
+): Promise<boolean> {
+  try {
+    // Check if bridge is paused
+    const isPaused = await bridgeContract.isPaused();
+    if (isPaused) throw new Error('Bridge is currently paused for maintenance');
+
+    // Check amount limits
+    const minAmount = await bridgeContract.getMinAmount(token.address[network]);
+    const maxAmount = await bridgeContract.getMaxAmount(token.address[network]);
+    const amountWei = ethers.utils.parseUnits(amount, token.decimals);
+    
+    if (amountWei.lt(minAmount)) {
+      throw new Error(`Amount below minimum (${ethers.utils.formatUnits(minAmount, token.decimals)} ${token.symbol})`);
+    }
+    if (amountWei.gt(maxAmount)) {
+      throw new Error(`Amount above maximum (${ethers.utils.formatUnits(maxAmount, token.decimals)} ${token.symbol})`);
+    }
+
+    // Check if user has sufficient balance
+    const tokenContract = new ethers.Contract(
+      token.address[network],
+      ['function balanceOf(address) view returns (uint256)'],
+      provider
+    );
+    const balance = await tokenContract.balanceOf(await provider.getSigner().getAddress());
+    if (balance.lt(amountWei)) {
+      throw new Error(`Insufficient ${token.symbol} balance`);
+    }
+
+    // Verify destination chain is active
+    const chainId = await provider.getNetwork().then(n => n.chainId);
+    if (!CHAIN_IDS[network as keyof typeof CHAIN_IDS][destinationChain as 'ethereum' | 'avalanche']) {
+      throw new Error('Invalid destination chain');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Validation error:', error);
+    throw error;
+  }
 }
 
 export function BridgeForm() {
   const [sourceChain, setSourceChain] = useState('ethereum');
   const [destinationChain, setDestinationChain] = useState('avalanche');
   const [amount, setAmount] = useState('');
-  const [selectedToken, setSelectedToken] = useState(SUPPORTED_TOKENS[0]);
+  const [selectedToken, setSelectedToken] = useState<Token>(SUPPORTED_TOKENS[0]);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [gasEstimate, setGasEstimate] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [balance, setBalance] = useState('0');
+  const network = process.env.NEXT_PUBLIC_NETWORK === 'testnet' ? 'testnet' : 'mainnet';
+  const [txStatus, setTxStatus] = useState<'idle' | 'pending' | 'completed' | 'failed'>('idle');
+  const [txHash, setTxHash] = useState<string>('');
 
   const chains = [
     { id: 'ethereum', name: 'Ethereum', chainId: 1 },
@@ -49,7 +172,7 @@ export function BridgeForm() {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       
-      const network = process.env.NEXT_PUBLIC_NETWORK as 'mainnet' | 'testnet';
+      const network = process.env.NEXT_PUBLIC_NETWORK === 'testnet' ? 'testnet' : 'mainnet';
       const tokenAddress = getTokenAddress(selectedToken.symbol, network);
       const decimals = getTokenDecimals(selectedToken.symbol);
 
@@ -99,8 +222,10 @@ export function BridgeForm() {
         const signer = provider.getSigner();
         const address = await signer.getAddress();
 
+        const network = process.env.NEXT_PUBLIC_NETWORK === 'testnet' ? 'testnet' : 'mainnet';
+        const tokenAddress = getTokenAddress(selectedToken.symbol, network);
         const tokenContract = new ethers.Contract(
-          selectedToken.address,
+          tokenAddress,
           ['function balanceOf(address) view returns (uint256)'],
           provider
         );
@@ -117,6 +242,11 @@ export function BridgeForm() {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = '/tokens/placeholder.svg'; // Fallback image
+  };
+
+  const handleTokenSelect = (symbol: string) => {
+    const token = SUPPORTED_TOKENS.find(t => t.symbol === symbol);
+    if (token) setSelectedToken(token);
   };
 
   return (
@@ -163,10 +293,7 @@ export function BridgeForm() {
         <div className="relative">
           <select
             value={selectedToken.symbol}
-            onChange={(e) => {
-              const token = SUPPORTED_TOKENS.find(t => t.symbol === e.target.value);
-              if (token) setSelectedToken(token);
-            }}
+            onChange={(e) => handleTokenSelect(e.target.value)}
             className="w-full bg-zinc-800 text-white rounded-lg p-3 pr-10 border border-zinc-700 focus:ring-2 focus:ring-blue-500 appearance-none"
           >
             {SUPPORTED_TOKENS.map((token) => (

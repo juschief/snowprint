@@ -167,8 +167,9 @@ export function NetworkCharts() {
     // Add this function to fetch proposals
     const fetchProposals = async () => {
       try {
-        const response = await api.getProposals();
-        setProposals(response.data.proposals);
+        const { proposals } = await api.getProposals();
+        console.log('Fetched proposals:', proposals); // Debug log
+        setProposals(proposals);
       } catch (error) {
         console.error('Failed to fetch proposals:', error);
       }

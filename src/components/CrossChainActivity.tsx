@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { LoadingState } from './LoadingState';
 
 interface CrossChainTx {
   sourceChain: string;
@@ -22,9 +23,10 @@ export function CrossChainActivity() {
     const fetchTransactions = async () => {
       try {
         const { data } = await api.getCrossChainTxs();
-        setTransactions(data);
+        setTransactions(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }
@@ -35,8 +37,10 @@ export function CrossChainActivity() {
     return () => clearInterval(interval);
   }, []);
 
-  const formatAddress = (hash: string) => 
-    `${hash.slice(0, 6)}...${hash.slice(-4)}`;
+  const formatAddress = (hash: string) => {
+    const truncatedHash = hash ? `${hash.slice(0, 6)}...${hash.slice(-4)}` : 'N/A';
+    return truncatedHash;
+  };
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -99,4 +103,4 @@ export function CrossChainActivity() {
       </div>
     </div>
   );
-} 
+}

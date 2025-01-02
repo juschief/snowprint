@@ -12,7 +12,7 @@ export function Navigation() {
   const navItems = [
     { path: '/', label: 'Dashboard' },
     { path: '/bridge', label: 'Token Bridge' },
-    { path: '/launchpad', label: 'Launchpad' },
+    { path: '/launchpad', label: 'L1  Creator' },
     { path: '/explore', label: 'Explore' }
   ];
 
@@ -38,7 +38,6 @@ export function Navigation() {
               name: "Snowprint",
               url: "https://example.com",
             }}
-            className="connect-button"
           />
         </div>
       </div>

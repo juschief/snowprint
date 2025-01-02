@@ -58,7 +58,7 @@ export function LatestTransactions() {
     <div className="w-full p-2.5 bg-zinc-800 rounded-lg">
       <h2 className="text-xs font-semibold mb-2">Latest Transactions</h2>
       <div className="space-y-1">
-        {transactions.slice(0, 3).map((tx) => (
+        {(transactions || []).slice(0, 3).map((tx) => (
           <div key={tx.hash} className="p-1.5 bg-zinc-700/50 rounded text-[10px]">
             <div className="flex items-center justify-between">
               <a 

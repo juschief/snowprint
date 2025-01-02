@@ -6,154 +6,30 @@ export interface Token {
     mainnet: string;
     testnet: string;
   };
-  logo?: string;
+  logoUrl?: string;
 }
 
 export const SUPPORTED_TOKENS: Token[] = [
   {
-    symbol: 'ETH',
-    name: 'Ether',
+    symbol: 'AVAX',
+    name: 'Avalanche',
     decimals: 18,
     address: {
-      mainnet: process.env.NEXT_PUBLIC_ETH_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_ETH_ADDRESS_TESTNET || '',
+      mainnet: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
+      testnet: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c' // Fuji WAVAX
     },
-  },
-  {
-    symbol: 'USDT',
-    name: 'Tether',
-    decimals: 6,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_USDT_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_USDT_ADDRESS_TESTNET || '',
-    },
+    logoUrl: '/tokens/avax.png'
   },
   {
     symbol: 'USDC',
     name: 'USD Coin',
     decimals: 6,
     address: {
-      mainnet: process.env.NEXT_PUBLIC_USDC_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_USDC_ADDRESS_TESTNET || '',
+      mainnet: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+      testnet: '0x5425890298aed601595a70AB815c96711a31Bc65' // Fuji USDC
     },
-  },
-  {
-    symbol: 'DAI',
-    name: 'Dai Stablecoin',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_DAI_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_DAI_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'WETH',
-    name: 'Wrapped Ether',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_WETH_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_WETH_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'WBTC',
-    name: 'Wrapped Bitcoin',
-    decimals: 8,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_WBTC_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_WBTC_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'UNI',
-    name: 'Uniswap',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_UNI_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_UNI_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'AAVE',
-    name: 'Aave',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_AAVE_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_AAVE_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'SUSHI',
-    name: 'SushiSwap',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_SUSHI_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_SUSHI_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'LINK',
-    name: 'Chainlink',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_LINK_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_LINK_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'MKR',
-    name: 'MakerDAO',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_MKR_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_MKR_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'COMP',
-    name: 'Compound',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_COMP_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_COMP_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'SNX',
-    name: 'Synthetix',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_SNX_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_SNX_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'BAT',
-    name: 'Basic Attention Token',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_BAT_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_BAT_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'YFI',
-    name: 'Yearn Finance',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_YFI_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_YFI_ADDRESS_TESTNET || '',
-    },
-  },
-  {
-    symbol: 'CRV',
-    name: 'Curve Finance',
-    decimals: 18,
-    address: {
-      mainnet: process.env.NEXT_PUBLIC_CRV_ADDRESS_MAINNET || '',
-      testnet: process.env.NEXT_PUBLIC_CRV_ADDRESS_TESTNET || '',
-    },
-  },
+    logoUrl: '/tokens/usdc.png'
+  }
 ];
 
 export const getTokenBySymbol = (symbol: string): Token | undefined => {

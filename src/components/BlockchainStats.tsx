@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface BlockchainData {
   blocks: Array<{
@@ -37,9 +37,9 @@ export function BlockchainStats() {
         setError(null);
 
         const [blocksRes, txRes, crossChainRes] = await Promise.all([
-          apiClient.get('/stats/blocks'),
-          apiClient.get('/stats/transactions'),
-          apiClient.get('/stats/cross-chain')
+          api.getLatestBlock(),
+          api.getTransactions(),
+          api.getCrossChainTxs()
         ]);
 
         setData({
